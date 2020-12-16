@@ -1,9 +1,16 @@
 {
   "name": "photo-gallery",
+  "description": "An Ionic project",
+  "private": true,
   "version": "0.0.1",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {
+    "ionic:start": "ionic serve",
+    "ionic:build": "ionic build",
+    "ionic:update-native": "ionic cap copy",
+    "ionic:sync-native": "ionic cap sync",
+    "----------": "----------",
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
@@ -11,7 +18,6 @@
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
-  "private": true,
   "dependencies": {
     "@angular/common": "~10.0.0",
     "@angular/core": "~10.0.0",
@@ -54,6 +60,5 @@
     "ts-node": "~8.3.0",
     "tslint": "~6.1.0",
     "typescript": "~3.9.5"
-  },
-  "description": "An Ionic project"
+  }
 }
