@@ -7,11 +7,19 @@
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ionic:start": "ionic serve",
+    "ionic:start:ios": "ionic cap run ios -l --external",
+    "ionic:start:android": "ionic cap run android -l --external",
+
     "ionic:build": "ionic build",
-    "ionic:update-native": "ionic cap copy",
-    "ionic:sync-native": "ionic cap sync",
+    "ionic:build:ios": "ionic cap add ios",
+    "ionic:build:android": "ionic cap add android",
+
     "ionic:lab": "ionic serve --lab",
+    "ionic:sync-native": "ionic cap sync",
+    "ionic:update-native": "ionic cap copy",
+
     "----------": "----------",
+
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
