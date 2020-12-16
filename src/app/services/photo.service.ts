@@ -8,6 +8,7 @@ import {
   CameraResultType,
   FilesystemDirectory,
 } from '@capacitor/core'
+import { Platform } from '@ionic/angular';
 
 const { Camera, Filesystem, Storage } = Plugins;
 
@@ -22,23 +23,29 @@ export interface Photo {
 export class PhotoService {
   public photos: Photo[] = [];
   private PHOTO_STORAGE: string = "photos";
+  private isHybridPlatform: boolean;
 
-  constructor() { }
+  constructor(private platform: Platform) {
+    this.isHybridPlatform = this.platform.is('hybrid');
+  }
 
   public async loadSaved() {
     // * get photos array from storage
     const photoList = await Storage.get({ key: this.PHOTO_STORAGE });
     this.photos = JSON.parse(photoList.value) || [];
 
-    for (let photo of this.photos) {
-      // * read each photo from filesystem
-      const readFile = await Filesystem.readFile({
-        path: photo.filePath,
-        directory: FilesystemDirectory.Data
-      });
-    
-      // * generate view path for <img>
-      photo.webviewPath = `data:image/jpeg;base64,${readFile.data}`;
+    // WEB
+    if (!this.isHybridPlatform) {
+      for (let photo of this.photos) {
+        // * read each photo from filesystem
+        const readFile = await Filesystem.readFile({
+          path: photo.filePath,
+          directory: FilesystemDirectory.Data
+        });
+      
+        // * generate view path for <img>
+        photo.webviewPath = `data:image/jpeg;base64,${readFile.data}`;
+      }
     }
   }
 
@@ -74,18 +81,40 @@ export class PhotoService {
     });
 
     // * return object with metadata
-    return {
-      filePath: fileName,
-      webviewPath: cameraPhoto.webPath
-    };
+
+    // HYBRID
+    if (this.isHybridPlatform) {
+      return {
+        filePath: savedFile.uri,
+        webviewPath: Capacitor.convertFileSrc(savedFile.uri)
+      };
+    }
+
+    // WEB
+    if (!this.isHybridPlatform) {
+      return {
+        filePath: fileName,
+        webviewPath: cameraPhoto.webPath
+      };
+    }
   }
 
   private async readAsBase64(cameraPhoto: CameraPhoto): Promise<string> {
     // * fetch photo, read as blob, convert to base64
-    const response = await fetch(cameraPhoto.webPath!);
-    const blob = await response.blob();
+    
+    // HYBRID
+    if (this.isHybridPlatform) {
+      const file = await Filesystem
+        .readFile({ path: cameraPhoto.path });
+      return file.data;
+    }
 
-    return await this.convertBlobToBase64(blob) as string;
+    // WEB
+    if (!this.isHybridPlatform) {
+      const response = await fetch(cameraPhoto.webPath!);
+      const blob = await response.blob();
+      return await this.convertBlobToBase64(blob) as string;
+    }
   }
 
   private convertBlobToBase64(blob: Blob): Promise<string> {
