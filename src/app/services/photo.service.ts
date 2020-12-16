@@ -12,7 +12,7 @@ import {
 const { Camera, Filesystem, Storage } = Plugins;
 
 export interface Photo {
-  filepath: string;
+  filePath: string;
   webviewPath: string;
 }
 
@@ -21,20 +21,44 @@ export interface Photo {
 })
 export class PhotoService {
   public photos: Photo[] = [];
+  private PHOTO_STORAGE: string = "photos";
 
   constructor() { }
 
+  public async loadSaved() {
+    // * get photos array from storage
+    const photoList = await Storage.get({ key: this.PHOTO_STORAGE });
+    this.photos = JSON.parse(photoList.value) || [];
+
+    for (let photo of this.photos) {
+      // * read each photo from filesystem
+      const readFile = await Filesystem.readFile({
+        path: photo.filePath,
+        directory: FilesystemDirectory.Data
+      });
+    
+      // * generate view path for <img>
+      photo.webviewPath = `data:image/jpeg;base64,${readFile.data}`;
+    }
+  }
+
   public async addNewToGallery() {
-    // * take new photo
+    // * take new photo from camera
     const capturedPhoto = await Camera.getPhoto({
       resultType: CameraResultType.Uri,
       source: CameraSource.Camera,
       quality: 100
     });
 
-    // * add to array
+    // * add new photo to array
     const savedImageFile = await this.savePicture(capturedPhoto);
     this.photos.unshift(savedImageFile);
+
+    // * save photos array to storage
+    Storage.set({
+      key: this.PHOTO_STORAGE,
+      value: JSON.stringify(this.photos)
+    });
   }
 
   private async savePicture(cameraPhoto: CameraPhoto): Promise<Photo> {
@@ -51,7 +75,7 @@ export class PhotoService {
 
     // * return object with metadata
     return {
-      filepath: fileName,
+      filePath: fileName,
       webviewPath: cameraPhoto.webPath
     };
   }
