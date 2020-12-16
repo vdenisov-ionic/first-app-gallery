@@ -99,6 +99,29 @@ export class PhotoService {
     }
   }
 
+  public async deletePicture(photo: Photo, position: number) {
+    // * remove selected photo
+    this.photos.splice(position, 1);
+  
+    // * update storage photos
+    Storage.set({
+      key: this.PHOTO_STORAGE,
+      value: JSON.stringify(this.photos)
+    });
+  
+    // * get file name
+    const index = photo.filePath.lastIndexOf('/');
+    const fileName = photo.filePath.substr(index + 1);
+
+    // * remove from filesystem
+    await Filesystem.deleteFile({
+      path: fileName,
+      directory: FilesystemDirectory.Data
+    });
+  }
+
+  // ########## UTILS ##########
+
   private async readAsBase64(cameraPhoto: CameraPhoto): Promise<string> {
     // * fetch photo, read as blob, convert to base64
     
